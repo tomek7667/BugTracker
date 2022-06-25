@@ -3,7 +3,7 @@ let router = express.Router();
 
 /* Sanity check */
 router.get('/ping', function(req, res, next) {
-    res.send('Users: pong!');
+    res.send('pong!');
 })
 
 

@@ -1,8 +1,8 @@
 {
-  "name": "my-app",
+  "name": "track-your-bugs",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "type": "commonjs",
   "scripts": {
     "dev": "vite",
     "build frontend": "vite build",
