@@ -1,11 +1,15 @@
 <script>
+    import { getNotificationsContext } from 'svelte-notifications';
+    const { addNotification } = getNotificationsContext();
+
     export let isLogged;
     export let menu;
+    export let user;
     let login = () => {
         let username = document.getElementById("username").value;
         let password = document.getElementById("password").value;
         // Post a login with fetch to "http://localhost:3000/api/users/login"
-        fetch("http://localhost:3000/api/users/login", {
+        fetch("/api/users/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -16,19 +20,32 @@
             })
         }).then(response => response.json())
         .then(data => {
-            console.log('login:', data);
             if (data.success) {
                 isLogged = true;
                 menu = "home";
+                // Set a cookie to data.token
+                document.cookie = "token=" + data.token;
+                // Hide the login form
+                document.getElementById("loginBox").style.display = "none";
+                // Show the user's name
+                user = username;
             } else {
-
+                addNotification({
+                    text: data.message,
+                    position: 'bottom-right',
+                    type: 'error',
+                    timeout: 5000,
+                    dismissible: true,
+                    dismissOnClick: true,
+                    pauseOnHover: true
+                })
             }
         });
     };
 </script>
 
 <!-- Login form -->
-<div class="wrapper">
+<div class="wrapper" id="loginBox">
     <h1>Login</h1>
     <br>
     <form id="login" on:submit|preventDefault={login}>

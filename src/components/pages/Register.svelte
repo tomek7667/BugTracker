@@ -1,6 +1,10 @@
 <script>
+    import { getNotificationsContext } from 'svelte-notifications';
+    const { addNotification } = getNotificationsContext();
+
     export let isLogged;
     export let menu;
+    export let user;
     let register = () => {
         let username = document.getElementById("username").value;
         let password = document.getElementById("password").value;
@@ -15,14 +19,24 @@
                 password: password,
                 email: email
             })
-        }).then(response => response.json())
+        })
+        .then(res => res.json())
         .then(data => {
-            console.log('register:', data);
             if (data.success) {
-                menu = "home";
                 isLogged = true;
+                document.cookie = "token=" + data.token;
+                user = username;
+                menu = "home";
             } else {
-
+                addNotification({
+                    text: data.message,
+                    position: 'bottom-right',
+                    type: 'error',
+                    timeout: 5000,
+                    dismissible: true,
+                    dismissOnClick: true,
+                    pauseOnHover: true
+                })
             }
         });
     };

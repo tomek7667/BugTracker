@@ -3,8 +3,8 @@
     export let isLogged;
     export let user;
     let logout = () => {
-        localStorage.removeItem("token");
-        window.location.href = "index.html";
+        // set document cookie token to null
+        document.cookie = "token=;";
         isLogged = false;
     };
 </script>
@@ -15,8 +15,10 @@
     <ul class="menu">
         <div class="onLeft">
             <li><a href="/" on:click|preventDefault={() => (menu = "home")}>Home</a></li> |
-            <li><a href="/" on:click|preventDefault={() => (menu = "browse")}>Browse</a></li> |
-            <li><a href="/" on:click|preventDefault={() => (menu = "profile")}>Profile</a></li>
+            <li><a href="/" on:click|preventDefault={() => (menu = "browse")}>Browse</a></li>
+            {#if isLogged === true}
+                | <li><a href="/" on:click|preventDefault={() => (menu = "profile")}>Profile</a></li>
+            {/if}
         </div>
         <div class="onRight">
             <!-- Delete onClicks -->
