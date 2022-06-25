@@ -1,6 +1,4 @@
 <script>
-    import { fade } from 'svelte/transition';
-
     import Header from './components/Header.svelte'
     import Login from "./components/Login.svelte";
     import Register from "./components/Register.svelte";
@@ -15,7 +13,7 @@
 
 <Header bind:menu={menu} />
 
-<main transition:fade>
+<main>
     {#if menu === 1}
         <Home />
     {:else if menu === 2}
