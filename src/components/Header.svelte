@@ -1,27 +1,36 @@
 <script>
     export let menu = 1;
-    export let isLogged = false;
+    export let isLogged;
+    export let user;
+    let logout = () => {
+        localStorage.removeItem("token");
+        window.location.href = "index.html";
+        isLogged = false;
+    };
 </script>
 
-<img src="img/logo.png" class="logo" on:click={() => (menu = 1)}>
+<img src="img/logo.png" class="logo" on:click={() => (menu = "home")} alt="Logo">
+
 <div class="wrapper">
     <ul class="menu">
         <div class="onLeft">
-            <li><a href="/" on:click|preventDefault={() => (menu = 1)}>Home</a></li> |
-            <li><a href="/" on:click|preventDefault={() => (menu = 2)}>Browse</a></li> |
-            <li><a href="/" on:click|preventDefault={() => (menu = 3)}>Profile</a></li>
+            <li><a href="/" on:click|preventDefault={() => (menu = "home")}>Home</a></li> |
+            <li><a href="/" on:click|preventDefault={() => (menu = "browse")}>Browse</a></li> |
+            <li><a href="/" on:click|preventDefault={() => (menu = "profile")}>Profile</a></li>
         </div>
         <div class="onRight">
             <!-- Delete onClicks -->
         {#if isLogged === true}
-            <li><a href="/" on:click|preventDefault={() => (isLogged = false)}>Logout</a></li>
+            <li><span>Logged as {user}</span></li> |
+            <li><a href="/" on:click|preventDefault={logout}>Logout</a></li>
         {:else}
-            <li><a href="/" on:click|preventDefault={() => (isLogged = true)}>Register</a></li> |
-            <li><a href="/" on:click|preventDefault={() => (isLogged = true)}>Login</a></li>
+            <li><a href="/" on:click|preventDefault={() => (menu = "register")}>Register</a></li> |
+            <li><a href="/" on:click|preventDefault={() => (menu = "login")}>Login</a></li>
         {/if}
         </div>
     </ul>
 </div>
+
 <style>
     .logo {
         height: calc(52px - 20px);

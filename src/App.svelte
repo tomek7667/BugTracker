@@ -7,19 +7,23 @@
     import Browse from "./components/pages/Browse.svelte";
     import PageNotFound from "./components/pages/PageNotFound.svelte";
 
-    let menu = 1;
+    let menu = "home";
     let isLogged = false;
 </script>
 
 <Header bind:menu={menu} />
 
 <main>
-    {#if menu === 1}
+    {#if menu === "home"}
         <Home />
-    {:else if menu === 2}
+    {:else if menu === "browse"}
         <Browse />
-    {:else if menu === 3}
+    {:else if menu === "profile"}
         <Profile />
+    {:else if menu === "login"}
+        <Login />
+    {:else if menu === "register"}
+        <Register />
     {:else}
         <PageNotFound />
     {/if}
