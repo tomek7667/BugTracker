@@ -27,14 +27,21 @@
                 document.cookie = "token=" + data.token;
                 user = username;
                 menu = "home";
+                addNotification({
+                    text: "Check your email to confirm your account",
+                    position: 'bottom-right',
+                    type: 'success',
+                    removeAfter: 3000,
+                    dismissible: true,
+                    pauseOnHover: true
+                })
             } else {
                 addNotification({
                     text: data.message,
                     position: 'bottom-right',
-                    type: 'error',
-                    timeout: 5000,
+                    type: 'danger',
+                    removeAfter: 3000,
                     dismissible: true,
-                    dismissOnClick: true,
                     pauseOnHover: true
                 })
             }

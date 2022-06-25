@@ -29,14 +29,21 @@
                 document.getElementById("loginBox").style.display = "none";
                 // Show the user's name
                 user = username;
+                addNotification({
+                    text: "Successfully logged in as " + username,
+                    position: 'bottom-right',
+                    type: 'success',
+                    removeAfter: 3000,
+                    dismissible: true,
+                    pauseOnHover: true
+                })
             } else {
                 addNotification({
                     text: data.message,
                     position: 'bottom-right',
-                    type: 'error',
-                    timeout: 5000,
+                    type: 'danger',
+                    removeAfter: 3000,
                     dismissible: true,
-                    dismissOnClick: true,
                     pauseOnHover: true
                 })
             }
