@@ -2,7 +2,8 @@
     export let menu = 1;
     export let isLogged = false;
 </script>
-<img src="img/logo.png" class="logo" on:click={() => {menu = 1}}>
+
+<img src="img/logo.png" class="logo" on:click={() => (menu = 1)}>
 <div class="wrapper">
     <ul class="menu">
         <div class="onLeft">
@@ -11,6 +12,7 @@
             <li><a href="/" on:click|preventDefault={() => (menu = 3)}>Profile</a></li>
         </div>
         <div class="onRight">
+            <!-- Delete onClicks -->
         {#if isLogged === true}
             <li><a href="/" on:click|preventDefault={() => (isLogged = false)}>Logout</a></li>
         {:else}
