@@ -3,15 +3,19 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const port = 3000;
-// Express routers
-let usersRouter = require('./routes/users');
-let programsRouter = require('./routes/programs');
+// Managers import
+const usersManager = require('./managers/users.js');
+const programsManager = require('./managers/programs.js');
+// Routers import
+const usersRouter = require('./routes/users');
+const programsRouter = require('./routes/programs');
 
 // Express middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../dist')));
 
+// API routes
 app.use('/api/users', usersRouter);
 app.use('/api/programs', programsRouter);
 
