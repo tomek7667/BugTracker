@@ -2,7 +2,35 @@ const bcrypt = require('bcrypt');
 const fs = require("fs");
 const jwt = require('jsonwebtoken');
 const privateKey = process.env.PRIV_KEY || "Development key";
+let nodemailer = require('nodemailer');
 const saltRounds = 12;
+
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.ALERTER_MAIL || 'example@gmail.com',
+        pass: process.env.ALERTER_PASSWORD || "p@ssw0rd"
+    }
+});
+
+let sendActivationLink = (username, receiver, activationToken) => {
+    let emailTitle = "Activate your account | Track Your Bugs";
+    // The link should be changed to product url
+    let emailText = `<h1>Activation link for ${receiver}</h1><h2>To activate your account click <a href="http://localhost:3000/verifyAccount?activationToken=${activationToken}">here</a>.</h2>`;
+    let mailOptions = {
+        from: 'Track Your Bugs',
+        to: receiver,
+        subject: emailTitle,
+        html: emailText
+    };
+    transporter.sendMail(mailOptions, function(error, info) {
+        if (error) {
+            console.error(error);
+        } else {
+            console.log(info);
+        }
+    });
+}
 
 let usersManager = {
     con: null,
@@ -14,7 +42,7 @@ let usersManager = {
             username = username.trim();
             if (username.includes('@')) {
                 this.con.query("SELECT hash FROM users WHERE email = ?", [username], (err, result) => {
-                    if (err) return reject({success: false, message: "Mysql error:" + err.stack});
+                    if (err) return reject({success: false, message: "Error: " + err.stack});
                     if (result.length === 0) {
                         return reject({success: false, message: "No such user found"});
                     } else {
@@ -33,7 +61,7 @@ let usersManager = {
                 });
             } else {
                 this.con.query("SELECT hash FROM users WHERE username = ?", [username], (err, result) => {
-                    if (err) return reject({success: false, message: "Error:" + err.sqlMessage});
+                    if (err) return reject({success: false, message: "Error: " + err.sqlMessage});
                     if (result.length === 0) {
                         return reject({success: false, message: "No such user found"});
                     } else {
@@ -67,11 +95,14 @@ let usersManager = {
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reject({success: false, message: "Your email address is not valid"});
             if (email.length > 64) return reject({success: false, message: "Your email address is too long"});
             let hashedPassword = bcrypt.hashSync(password, saltRounds);
-            this.con.query("INSERT INTO users (username, hash, email) VALUES (?, ?, ?)", [username, hashedPassword, email], (err, result) => {
-                if (err) return reject({success: false, message: "Error:" + err.sqlMessage });
+            // Create random hex string with length 256
+            let activationToken = Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
+            this.con.query("INSERT INTO users (username, hash, email, activationToken) VALUES (?, ?, ?, ?)", [username, hashedPassword, email, activationToken], (err, result) => {
+                if (err) return reject({success: false, message: "Error: " + err.sqlMessage });
                 if (result.length === 0) {
                     return reject({success: false, message: "Somewthing went wrong"});
                 } else {
+                    sendActivationLink(username, email, activationToken);
                     let token = jwt.sign(
                         { loggedAs: username },
                         privateKey,
@@ -93,7 +124,19 @@ let usersManager = {
     updateLastLogged: function (username) {
         return new Promise((resolve, reject) => {
             this.con.query("UPDATE users SET lastLogged = NOW() WHERE username = ?", [username], (err, result) => {
-                if (err) return reject({ message: "Error:" + err.sqlMessage, success: false });
+                if (err) return reject({ message: "Error: " + err.sqlMessage, success: false });
+                if (result.affectedRows === 0) {
+                    return reject({ success: false, message: "Something went wrong" });
+                } else {
+                    return resolve({ success: true });
+                }
+            });
+        })
+    },
+    verifyAccount: function (activationToken) {
+        return new Promise((resolve, reject) => {
+            this.con.query("UPDATE users SET isActivated = 1 WHERE activationToken = ? AND isActivated = 0", [activationToken], (err, result) => {
+                if (err) return reject({ success: false, message: "Error: " + err.sqlMessage });
                 if (result.affectedRows === 0) {
                     return reject({ success: false, message: "Something went wrong" });
                 } else {
