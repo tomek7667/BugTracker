@@ -85,8 +85,8 @@ let usersManager = {
     verify: (token) => {
         return new Promise((resolve, reject) => {
             jwt.verify(token, privateKey, (err, decoded) => {
-                if (err !== null) return reject(false);
-                else return resolve(decoded.loggedAs);
+                if (err !== null) return reject({ success: false });
+                else return resolve({ success: true, username: decoded.loggedAs });
             })
         })
     },

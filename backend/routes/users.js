@@ -40,4 +40,16 @@ router.post('/register', (req, res) => {
     }
 })
 
+router.post('/verify', (req, res) => {
+    if (req.body.token) {
+        usersManager.verify(req.body.token).then((result) => {
+            res.send(result);
+        }).catch((err) => {
+            res.send(err);
+        });
+    } else {
+        res.send({success: false, message: "Missing token"});
+    }
+})
+
 module.exports = router;
