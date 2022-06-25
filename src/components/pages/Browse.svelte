@@ -6,7 +6,6 @@
         fetch('http://localhost:3000/api/programs/programs')
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 programs = data;
             });
     });
@@ -34,7 +33,6 @@
 
 <style>
     .program {
-        border: 1px solid black;
         padding: 10px;
     }
 </style>
