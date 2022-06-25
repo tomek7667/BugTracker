@@ -1,11 +1,11 @@
 <script>
     import Header from './components/Header.svelte'
-    import Login from "./components/Login.svelte";
-    import Register from "./components/Register.svelte";
-    import Home from "./components/Home.svelte";
-    import Profile from "./components/Profile.svelte";
-    import Browse from "./components/Browse.svelte";
-    import PageNotFound from "./components/PageNotFound.svelte";
+    import Login from "./components/pages/Login.svelte";
+    import Register from "./components/pages/Register.svelte";
+    import Home from "./components/pages/Home.svelte";
+    import Profile from "./components/pages/Profile.svelte";
+    import Browse from "./components/pages/Browse.svelte";
+    import PageNotFound from "./components/pages/PageNotFound.svelte";
 
     let menu = 1;
     let isLogged = false;
