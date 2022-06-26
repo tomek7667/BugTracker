@@ -15,7 +15,6 @@
     let menu = "home";
     let isLogged = false;
     let user;
-
     let notify = (message, type) => {
         addNotification({
             text: message,
@@ -56,7 +55,7 @@
                         return reject();
                     }
                 })
-                .catch(err => {
+                .catch(() => {
                     isLogged = false;
                     return reject();
                 });
@@ -74,13 +73,13 @@
     {#if menu === "home"}
         <Home />
     {:else if menu === "browse"}
-        <Browse />
+        <Browse bind:menu bind:isLogged bind:user />
     {:else if menu === "profile"}
-        <Profile />
+        <Profile bind:menu bind:isLogged bind:user />
     {:else if menu === "login"}
-        <Login bind:menu={menu} bind:isLogged={isLogged} bind:user={user} />
+        <Login bind:menu bind:isLogged bind:user />
     {:else if menu === "register"}
-        <Register bind:menu={menu} bind:isLogged={isLogged} bind:user={user} />
+        <Register bind:menu bind:isLogged bind:user />
     {:else}
         <PageNotFound />
     {/if}
