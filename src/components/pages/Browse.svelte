@@ -3,7 +3,7 @@
     let programs = [];
 
     onMount(() => {
-        fetch('http://localhost:3000/api/programs/programs')
+        fetch('/api/programs/programs')
             .then(response => response.json())
             .then(data => {
                 programs = data;

@@ -9,7 +9,7 @@
         let username = document.getElementById("username").value;
         let password = document.getElementById("password").value;
         let email = document.getElementById("email").value;
-        fetch("http://localhost:3000/api/users/register", {
+        fetch("/api/users/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
