@@ -25,9 +25,9 @@ let sendActivationLink = (username, receiver, activationToken) => {
     };
     transporter.sendMail(mailOptions, function(error, info) {
         if (error) {
-            console.error(error);
+            // console.error(error);
         } else {
-            console.log(info);
+            // console.log(info);
         }
     });
 }
@@ -97,12 +97,14 @@ let usersManager = {
             let hashedPassword = bcrypt.hashSync(password, saltRounds);
             // Create random hex string with length 256
             let activationToken = Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
-            this.con.query("INSERT INTO users (username, hash, email, activationToken) VALUES (?, ?, ?, ?)", [username, hashedPassword, email, activationToken], (err, result) => {
+            this.con.query("INSERT INTO users (username, hash, email, activationToken) VALUES (?, ?, ?, ?)", [username, hashedPassword, email, activationToken], async (err, result) => {
                 if (err) return reject({success: false, message: "Error: " + err.sqlMessage });
                 if (result.length === 0) {
                     return reject({success: false, message: "Somewthing went wrong"});
                 } else {
                     sendActivationLink(username, email, activationToken);
+                    let userID = result.insertId;
+                    await this.con.query("INSERT INTO profiles (userID) VALUES (?)", [userID]);
                     let token = jwt.sign(
                         { loggedAs: username },
                         privateKey,
@@ -143,6 +145,97 @@ let usersManager = {
                     return resolve({ success: true });
                 }
             });
+        })
+    },
+    getUserInformation: function (token) {
+        return new Promise((resolve, reject) => {
+            jwt.verify(token, privateKey, (err, decoded) => {
+                if (err !== null) return reject({ success: false, message: "Something went wrong" });
+                else {
+                    this.con.query("SELECT username, email, lastLogged, stars, created, isActivated FROM users WHERE username = ?", [decoded.loggedAs], (err, result) => {
+                        if (err) return reject({ success: false, message: "Error: " + err.sqlMessage });
+                        if (result.length !== 1) {
+                            return reject({ success: false, message: "Something went wrong" });
+                        } else {
+                            return resolve({ success: true, username: result[0].username, email: result[0].email, lastLogged: result[0].lastLogged, stars: result[0].stars, created: result[0].created, isActivated: result[0].isActivated });
+                        }
+                    });
+                }
+            })
+        })
+    },
+    getProfileInformation: function (token, username) {
+        return new Promise((resolve, reject) => {
+            jwt.verify(token, privateKey, (err, decoded) => {
+                if (err !== null) return reject({ success: false, message: "Something went wrong" });
+                else {
+                    let tokenUsername = decoded.loggedAs;
+                    this.con.query("SELECT description, lastChanged, country, workplace FROM profiles INNER JOIN users ON users.ID = profiles.userID WHERE users.username = ? AND (users.username = ? OR profiles.isPublic = 1)", [username, tokenUsername], (err, result) => {
+                        if (err) return reject({ success: false, message: "Error: " + err.sqlMessage });
+                        if (result.length !== 1) {
+                            return reject({ success: false, message: "Something went wrong" });
+                        } else {
+                            return resolve({ success: true, description: result[0].description, lastChanged: result[0].lastChanged, country: result[0].country, workplace: result[0].workplace });
+                        }
+                    });
+                }
+            })
+        })
+    },
+    updateProfileInformation: function (token, email, workplace, description, country) {
+        return new Promise((resolve, reject) => {
+            jwt.verify(token, privateKey, (err, decoded) => {
+                if (err !== null) return reject({ success: false, message: "Something went wrong" });
+                else {
+                    let tokenUsername = decoded.loggedAs;
+                    // Check if the email has changed
+                    this.con.query("SELECT email FROM users WHERE username = ?", [tokenUsername], async (err, result) => {
+                        if (err) return reject({ success: false, message: "Error: " + err.sqlMessage });
+                        if (result.length !== 1) {
+                            return reject({ success: false, message: "Something went wrong" });
+                        } else {
+                            let oldEmail = result[0].email;
+                            // Check if the description is too long
+                            if (description.length > 1023) return reject({ success: false, message: "Your description is too long" });
+                            // Check if the country is too long
+                            if (country.length > 31) return reject({ success: false, message: "Your country is too long" });
+                            // Check if the workplace is too long
+                            if (workplace.length > 127) return reject({ success: false, message: "Your workplace is too long" });
+                            // Check if the country is valid
+                            if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.?]*$/.test(country)) return reject({ success: false, message: "Your country can't have other special characters than [ !@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.? ]" });
+                            // Check if the workplace is valid
+                            if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.?]*$/.test(workplace)) return reject({ success: false, message: "Your workplace can't have other special characters than [ !@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.? ]" });
+                            // Check if the description is valid
+                            if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.?]*$/.test(description)) return reject({ success: false, message: "Your description can't have other special characters than [ !@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.? ]" });
+                            // Check if the email is valid
+                            if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.?]*$/.test(email)) return reject({ success: false, message: "Your email can't have other special characters than [ !@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.? ]" });
+                            // Check if the email is already in use
+                            if (oldEmail !== email) {
+                                let activationToken = Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12);
+                                let isThereMail = await (new Promise(resolve => {
+                                    this.con.query("SELECT ID FROM users WHERE email = ?", [email], (err, result) => {
+                                        if (err) return reject({ success: false, message: "Error: " + err.sqlMessage });
+                                        if (result.length === 1) return resolve(true);
+                                        else return resolve(false);
+                                    });
+                                }));
+                                if (isThereMail) return reject({ success: false, message: "This email is already in use" });
+                                await this.con.query("UPDATE users SET email = ?, activationToken = ?, isActivated = 0 WHERE username = ?", [email, activationToken, tokenUsername]);
+                                sendActivationLink(tokenUsername, email, activationToken);
+                            }
+                            this.con.query("UPDATE profiles INNER JOIN users ON users.ID = profiles.userID SET description = ?, lastChanged = NOW(), country = ?, workplace = ? WHERE users.username = ?", [description, country, workplace, tokenUsername], (err, result) => {
+                                if (err) return reject({ success: false, message: "Error: " + err.sqlMessage });
+                                if (result.affectedRows === 0) {
+                                    return reject({ success: false, message: "Something went wrong" });
+                                } else {
+                                    return resolve({ success: true });
+                                }
+                            });
+
+                        }
+                    })
+                }
+            })
         })
     }
 }

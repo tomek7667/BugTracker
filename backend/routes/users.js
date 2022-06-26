@@ -52,4 +52,47 @@ router.post('/verify', (req, res) => {
     }
 })
 
+router.post('/getUserInformation', (req, res) => {
+    if (req.body.token) {
+        usersManager.getUserInformation(req.body.token).then((result) => {
+            res.send(result);
+        }).catch((err) => {
+            res.send(err);
+        });
+    } else {
+        res.send({success: false, message: "Missing token"});
+    }
+})
+
+router.post('/getProfileInformation', (req, res) => {
+    if (req.body.token && req.body.username) {
+        usersManager.getProfileInformation(req.body.token, req.body.username).then((result) => {
+            res.send(result);
+        }).catch((err) => {
+            res.send(err);
+        });
+    } else {
+        res.send({success: false, message: "Missing token or username"});
+    }
+})
+
+router.post('/updateProfileInformation', (req, res) => {
+    if (
+        req.body.token !== null &&
+        req.body.email !== null &&
+        req.body.workplace !== null &&
+        req.body.description !== null &&
+        req.body.country !== null
+    ) {
+        // token && email && workplace && description && country
+        usersManager.updateProfileInformation(req.body.token, req.body.email, req.body.workplace, req.body.description, req.body.country).then((result) => {
+            res.send(result);
+        }).catch((err) => {
+            res.send(err);
+        });
+    } else {
+        res.send({success: false, message: "Missing information"});
+    }
+})
+
 module.exports = router;
