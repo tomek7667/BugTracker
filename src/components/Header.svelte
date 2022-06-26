@@ -1,11 +1,24 @@
 <script>
-    export let menu = 1;
+    export let menu;
     export let isLogged;
     export let user;
+    let isPrivateMenu = () => {
+        if (
+            menu === "profile" ||
+            menu === "settings"
+        ) return true;
+        return false;
+    }
+
     let logout = () => {
         // set document cookie token to null
         document.cookie = "token=;";
         isLogged = false;
+        user = "";
+        // If menu is not a public one, redirect to a homepage
+        if (isPrivateMenu()) {
+            menu = "home";
+        }
     };
 </script>
 
